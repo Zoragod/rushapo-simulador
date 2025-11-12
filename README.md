@@ -50,6 +50,56 @@ Se genera `Rushapo_Simulacion_Completa.xlsx` con hojas: Resumen, Marcadores, Sen
 5. Una vez deploy, tendrás una URL pública.
 
 ## Despliegue en Railway (alternativa)
+## Despliegue en PythonAnywhere
+PythonAnywhere ya trae servidor WSGI, no necesitas `gunicorn`. Pasos:
+
+1. Sube el repositorio
+   - Opción A: Conecta tu cuenta de GitHub y haz un clone en la consola de PythonAnywhere:
+     ```bash
+     git clone https://github.com/TU_USUARIO/rushapo-simulador.git
+     cd rushapo-simulador
+     ```
+   - Opción B: Sube un ZIP y descomprímelo.
+
+2. Crea (si quieres) un virtualenv aislado:
+   ```bash
+   python3.11 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+3. Archivo WSGI
+   - Crea una nueva Web App en el panel (Flask). El asistente generará un archivo `var/www/<tu_usuario>_pythonanywhere_com_wsgi.py`.
+   - Edita ese archivo para apuntar a tu proyecto o reemplázalo con algo como:
+     ```python
+     import sys, os
+     project_path = os.path.expanduser('~/rushapo-simulador')
+     if project_path not in sys.path:
+         sys.path.append(project_path)
+     from app import app as application  # Flask instance
+     ```
+   - Alternativamente usa el `wsgi.py` incluido en el repo y ajusta la ruta.
+
+4. Configura la Web App
+   - En el panel selecciona la versión de Python que coincide con tu virtualenv.
+   - En “Virtualenv” pega la ruta: `/home/TU_USUARIO/rushapo-simulador/venv` si creaste una.
+   - Guarda y pulsa “Reload” (botón verde) para reiniciar.
+
+5. Archivos estáticos (opcional)
+   - Si más adelante agregas CSS/JS propios, crea carpeta `static/` y configúrala en el panel.
+
+6. Verifica
+   - Abre la URL `https://TU_USUARIO.pythonanywhere.com/` y debería cargar el formulario.
+   - Si falla, revisa el log de errores en el panel: Files > `error.log`.
+
+7. CRON / Tareas programadas (opcional)
+   - Puedes programar regeneraciones automáticas del Excel usando un script que llame a `run_simulacion_completa`.
+
+Notas:
+ - `gunicorn` no es obligatorio aquí pero mantenerlo en requirements no rompe nada.
+ - Evita usar `app.run()` en producción (ya está dentro del bloque `if __name__ == '__main__':`).
+ - Si el Excel crece mucho, ponlo en `.gitignore` (ya está) para no subirlo.
+
 - Crea proyecto nuevo → Deploy from GitHub repo.
 - Añade variable `PORT` si Railway lo requiere (gunicorn la usa automáticamente si se expone).
 - Comando start: `gunicorn app:app --bind 0.0.0.0:$PORT`
