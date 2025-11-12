@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simulador Rushapo xG</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+</head>
+<body>
+<main class="container">
+  <h1>Simulador Monte Carlo (xG)</h1>
+  <form method="post" action="/simular">
+    <fieldset>
+      <legend>Equipo Local (ataque y defensa)</legend>
+      <div class="grid">
+        <label>Nombre
+          <input name="equipo_local" value="{{ current['equipo_local'] if current else 'Boca Juniors' }}" required />
+        </label>
+        <label>xGF Local Prom
+          <input type="number" step="0.01" name="xGF_local_prom" value="{{ current['xGF_local_prom'] if current else 1.65 }}" required />
+        </label>
+        <label>xGA Local Prom
+          <input type="number" step="0.01" name="xGA_local_prom" value="{{ current['xGA_local_prom'] if current else 1.14 }}" required />
+        </label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Equipo Visitante (ataque y defensa)</legend>
+      <div class="grid">
+        <label>Nombre
+          <input name="equipo_visit" value="{{ current['equipo_visit'] if current else 'River Plate' }}" required />
+        </label>
+        <label>xGF Visit Prom
+          <input type="number" step="0.01" name="xGF_visit_prom" value="{{ current['xGF_visit_prom'] if current else 1.39 }}" required />
+        </label>
+        <label>xGA Visit Prom
+          <input type="number" step="0.01" name="xGA_visit_prom" value="{{ current['xGA_visit_prom'] if current else 1.22 }}" required />
+        </label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Parámetros Globales</legend>
+      <div class="grid">
+        <label>xG Liga Equipo
+          <input type="number" step="0.01" name="xG_liga_equipo" value="{{ current['xG_liga_equipo'] if current else 0.98 }}" required />
+        </label>
+        <label>HFA (home field advantage)
+          <input type="number" step="0.01" name="HFA" value="{{ current['HFA'] if current else 1.09 }}" required />
+        </label>
+        <label>Sigma (volatilidad)
+          <input type="number" step="0.01" name="sigma" value="{{ current['sigma'] if current else 0.3 }}" required />
+        </label>
+        <label>Simulaciones
+          <input type="number" name="n_sims" value="{{ current['n_sims'] if current else 5000 }}" required />
+        </label>
+      </div>
+    </fieldset>
+    <button type="submit">Simular</button>
+    <p style="font-size:0.8rem">xGF = Expected Goals For (ofensivo). xGA = Expected Goals Against (defensivo). Cada equipo necesita ambos valores promedio según condición (local / visita).</p>
+    <details>
+      <summary>Cuotas (opcional)</summary>
+      <div class="grid">
+        <label>Odds Local
+          <input name="odds_Local" type="number" step="0.01" value="{{ odds_current['Local'] }}" />
+        </label>
+        <label>Odds Empate
+          <input name="odds_Empate" type="number" step="0.01" value="{{ odds_current['Empate'] }}" />
+        </label>
+        <label>Odds Visitante
+          <input name="odds_Visitante" type="number" step="0.01" value="{{ odds_current['Visitante'] }}" />
+        </label>
+      </div>
+      <div class="grid">
+        <label>Odds Over 2.5
+          <input name="odds_Over 2.5" type="number" step="0.01" value="{{ odds_current['Over 2.5'] }}" />
+        </label>
+        <label>Odds Under 2.5
+          <input name="odds_Under 2.5" type="number" step="0.01" value="{{ odds_current['Under 2.5'] }}" />
+        </label>
+        <label>Odds Over 3.5
+          <input name="odds_Over 3.5" type="number" step="0.01" value="{{ odds_current['Over 3.5'] }}" />
+        </label>
+        <label>Odds Under 3.5
+          <input name="odds_Under 3.5" type="number" step="0.01" value="{{ odds_current['Under 3.5'] }}" />
+        </label>
+        <label>Odds BTTS Sí
+          <input name="odds_BTTS" type="number" step="0.01" value="{{ odds_current['BTTS'] }}" />
+        </label>
+        <label>Odds BTTS No
+          <input name="odds_BTTS No" type="number" step="0.01" value="{{ odds_current['BTTS No'] }}" />
+        </label>
+      </div>
+      <p style="font-size:0.7rem">Introduce las cuotas de la casa para calcular valor esperado (EV). EV = p*cuota - 1.</p>
+    </details>
+  </form>
+  {% if resumen %}
+    <h2>Resumen</h2>
+    <table>
+      <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>
+      <tbody>
+      {% for k,v in resumen.items() %}
+        <tr><td>{{ k }}</td><td>{{ '{:.2%}'.format(v) if '%' in k else '{:.2f}'.format(v) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <h3>Marcadores más probables</h3>
+    <table>
+      <thead><tr><th>Local</th><th>Visitante</th><th>Prob (%)</th></tr></thead>
+      <tbody>
+      {% for row in top_scores %}
+        <tr><td>{{ row.g_loc }}</td><td>{{ row.g_vis }}</td><td>{{ '{:.2f}'.format(row.Prob*100) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if cuotas %}
+    <h3>Cuotas y Value</h3>
+    <table>
+      <thead><tr><th>Mercado</th><th>Prob (sim)</th><th>Cuota justa</th><th>Cuota book</th><th>Prob implícita</th><th>EV</th></tr></thead>
+      <tbody>
+        {% for row in cuotas %}
+          <tr>
+            <td>{{ row['Mercado'] }}</td>
+            <td>{{ '{:.2%}'.format(row['Prob (sim)']) }}</td>
+            <td>{{ '{:.2f}'.format(row['Cuota justa']) }}</td>
+            <td>{{ row['Cuota book'] if row['Cuota book'] else '-' }}</td>
+            <td>{{ '{:.2%}'.format(row['Prob implícita']) if row['Prob implícita'] else '-' }}</td>
+            {% if row['EV'] is not none %}
+              {% if row['EV'] > 0 %}
+                <td style="color:limegreen">{{ '{:.2f}'.format(row['EV']) }}</td>
+              {% else %}
+                <td style="color:tomato">{{ '{:.2f}'.format(row['EV']) }}</td>
+              {% endif %}
+            {% else %}
+              <td>-</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  {% endif %}
+</main>
+</body>
+</html>
