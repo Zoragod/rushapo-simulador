@@ -2,13 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Simulador Rushapo xG</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
 </head>
 <body>
 <main class="container">
-  <h1>Simulador Monte Carlo (xG)</h1>
-  <form method="post" action="/simular">
+  <header class="site">
+    <h1>RUSHAPO • Simulador Monte Carlo (xG)</h1>
+  </header>
+  <form method="post" action="/simular" class="card">
     <fieldset>
       <legend>Equipo Local (ataque y defensa)</legend>
       <div class="grid">
@@ -54,9 +58,9 @@
         </label>
       </div>
     </fieldset>
-    <button type="submit">Simular</button>
+    <button type="submit" class="button">Simular</button>
     <p style="font-size:0.8rem">xGF = Expected Goals For (ofensivo). xGA = Expected Goals Against (defensivo). Cada equipo necesita ambos valores promedio según condición (local / visita).</p>
-    <details>
+    <details class="details">
       <summary>Cuotas (opcional)</summary>
       <div class="grid">
         <label>Odds Local
@@ -93,8 +97,9 @@
     </details>
   </form>
   {% if resumen %}
-    <h2>Resumen</h2>
-    <table>
+    <article class="card" style="margin-top:1rem">
+    <h2 style="color:var(--gold)">Resumen</h2>
+    <table class="table">
       <thead><tr><th>Métrica</th><th>Valor</th></tr></thead>
       <tbody>
       {% for k,v in resumen.items() %}
@@ -102,8 +107,8 @@
       {% endfor %}
       </tbody>
     </table>
-    <h3>Marcadores más probables</h3>
-    <table>
+    <h3 style="color:var(--gold)">Marcadores más probables</h3>
+    <table class="table">
       <thead><tr><th>Local</th><th>Visitante</th><th>Prob (%)</th></tr></thead>
       <tbody>
       {% for row in top_scores %}
@@ -112,8 +117,8 @@
       </tbody>
     </table>
     {% if cuotas %}
-    <h3>Cuotas y Value</h3>
-    <table>
+    <h3 style="color:var(--gold)">Cuotas y Value</h3>
+    <table class="table">
       <thead><tr><th>Mercado</th><th>Prob (sim)</th><th>Cuota justa</th><th>Cuota book</th><th>Prob implícita</th><th>EV</th></tr></thead>
       <tbody>
         {% for row in cuotas %}
@@ -125,9 +130,9 @@
             <td>{{ '{:.2%}'.format(row['Prob implícita']) if row['Prob implícita'] else '-' }}</td>
             {% if row['EV'] is not none %}
               {% if row['EV'] > 0 %}
-                <td style="color:limegreen">{{ '{:.2f}'.format(row['EV']) }}</td>
+                <td><span class="badge pos">{{ '{:.2f}'.format(row['EV']) }}</span></td>
               {% else %}
-                <td style="color:tomato">{{ '{:.2f}'.format(row['EV']) }}</td>
+                <td><span class="badge neg">{{ '{:.2f}'.format(row['EV']) }}</span></td>
               {% endif %}
             {% else %}
               <td>-</td>
@@ -137,7 +142,11 @@
       </tbody>
     </table>
     {% endif %}
+    </article>
   {% endif %}
+  <footer>
+    <small>© {{ 2025 }} Rushapo — Tema negro/dorado</small>
+  </footer>
 </main>
 </body>
 </html>

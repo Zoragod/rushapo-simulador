@@ -1,0 +1,62 @@
+/* Rushapo theme: Black & Gold */
+:root{
+  --bg:#0B0B0C;
+  --panel:#121214;
+  --text:#E6E6E6;
+  --muted:#A6A6A6;
+  --gold:#D4AF37;
+  --gold-weak:#b7912d;
+  --danger:#ef5350;
+  --success:#66bb6a;
+}
+
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+}
+
+header.site{
+  padding: 1rem 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  margin-bottom:1rem;
+}
+header.site h1{
+  margin:0;
+  color:var(--gold);
+  letter-spacing:.5px;
+}
+
+.card{
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  padding:1rem 1.25rem;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.25);
+}
+
+legend{color:var(--gold); font-weight:600}
+label{color:var(--muted)}
+input, select{background:#1b1b1d; color:var(--text); border-color:#2a2a2e}
+
+button, .button{
+  background:var(--gold);
+  color:#0b0b0c;
+  border:none;
+}
+button:hover, .button:hover{background:var(--gold-weak)}
+
+.table{width:100%; border-collapse:collapse}
+.table th,.table td{padding:.65rem .8rem; border-bottom:1px solid rgba(255,255,255,.06)}
+.table thead th{color:var(--gold); font-weight:600; border-bottom:2px solid var(--gold-weak)}
+.table tbody tr:hover{background:#141416}
+
+.badge{
+  display:inline-block; padding:.2rem .5rem; border-radius:6px; font-size:.85rem
+}
+.badge.pos{background: rgba(102,187,106,.15); color:var(--success)}
+.badge.neg{background: rgba(239,83,80,.15); color:var(--danger)}
+
+.details summary{color:var(--gold)}
+
+footer{margin:2rem 0; color:var(--muted); font-size:.9rem}
