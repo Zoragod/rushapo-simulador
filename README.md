@@ -124,5 +124,3 @@ README.md             # Este documento
 - Incluir gráfico de sensibilidad en la web (guardado como PNG).
 - Test unitarios de funciones (Poisson lambda y EV).
 
-## Licencia
-Define una licencia (MIT recomendada) si planeas hacerlo público.
