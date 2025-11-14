@@ -13,7 +13,7 @@
     <h1>RUSHAPO • Simulador Monte Carlo (xG)</h1>
   </header>
   <form method="post" action="/simular" class="card">
-    <fieldset>
+    <fieldset class="card">
       <legend>Equipo Local (ataque y defensa)</legend>
       <div class="grid">
         <label>Nombre
@@ -26,8 +26,16 @@
           <input type="number" step="0.01" name="xGA_local_prom" value="{{ current['xGA_local_prom'] if current else 1.14 }}" required />
         </label>
       </div>
+      <div class="grid">
+        <label>Goles hechos (últ. 10, prom)
+          <input type="number" step="0.01" name="gf_local_10" value="{{ current.get('gf_local_10', '') if current else '' }}" placeholder="ej: 1.20" />
+        </label>
+        <label>Goles recibidos (últ. 10, prom)
+          <input type="number" step="0.01" name="ga_local_10" value="{{ current.get('ga_local_10', '') if current else '' }}" placeholder="ej: 1.05" />
+        </label>
+      </div>
     </fieldset>
-    <fieldset>
+    <fieldset class="card">
       <legend>Equipo Visitante (ataque y defensa)</legend>
       <div class="grid">
         <label>Nombre
@@ -40,8 +48,16 @@
           <input type="number" step="0.01" name="xGA_visit_prom" value="{{ current['xGA_visit_prom'] if current else 1.22 }}" required />
         </label>
       </div>
+      <div class="grid">
+        <label>Goles hechos (últ. 10, prom)
+          <input type="number" step="0.01" name="gf_visit_10" value="{{ current.get('gf_visit_10', '') if current else '' }}" placeholder="ej: 1.10" />
+        </label>
+        <label>Goles recibidos (últ. 10, prom)
+          <input type="number" step="0.01" name="ga_visit_10" value="{{ current.get('ga_visit_10', '') if current else '' }}" placeholder="ej: 1.30" />
+        </label>
+      </div>
     </fieldset>
-    <fieldset>
+    <fieldset class="card">
       <legend>Parámetros Globales</legend>
       <div class="grid">
         <label>xG Liga Equipo

@@ -6,7 +6,9 @@ app = Flask(__name__)
 
 def _to_float(val, default):
     try:
-        return float(val)
+        if val is None or val == "":
+            return float(default)
+        return float(str(val).replace(",", "."))
     except Exception:
         return float(default)
 
@@ -45,6 +47,11 @@ def simular():
             "xGA_local_prom": _to_float(form.get("xGA_local_prom"), current["xGA_local_prom"]),
             "xGF_visit_prom": _to_float(form.get("xGF_visit_prom"), current["xGF_visit_prom"]),
             "xGA_visit_prom": _to_float(form.get("xGA_visit_prom"), current["xGA_visit_prom"]),
+            # Nuevos: goles últimos 10 (prom por partido)
+            "gf_local_10": _to_float(form.get("gf_local_10"), current.get("gf_local_10") or current["xGF_local_prom"]),
+            "ga_local_10": _to_float(form.get("ga_local_10"), current.get("ga_local_10") or current["xGA_local_prom"]),
+            "gf_visit_10": _to_float(form.get("gf_visit_10"), current.get("gf_visit_10") or current["xGF_visit_prom"]),
+            "ga_visit_10": _to_float(form.get("ga_visit_10"), current.get("ga_visit_10") or current["xGA_visit_prom"]),
             "xG_liga_equipo": _to_float(form.get("xG_liga_equipo"), current["xG_liga_equipo"]),
             "HFA": _to_float(form.get("HFA"), current["HFA"]),
             "sigma": _to_float(form.get("sigma"), current["sigma"]),

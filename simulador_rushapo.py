@@ -29,6 +29,11 @@ params = {
     "xGA_local_prom": 1.14,
     "xGF_visit_prom": 1.39,
     "xGA_visit_prom": 1.22,
+    # Nuevos (promedio por partido en los últimos 10, opcional)
+    "gf_local_10": None,
+    "ga_local_10": None,
+    "gf_visit_10": None,
+    "ga_visit_10": None,
     "xG_liga_equipo": 0.98,
     "HFA": 1.09,
     "sigma": 0.3,
@@ -59,11 +64,23 @@ def sim_partido_xg(p):
     HFA = float(p.get("HFA", 1.0))
     xG_liga = float(p.get("xG_liga_equipo", 1.0)) or 1.0
 
+    # Mezcla xG con goles recientes (prom últimos 10) si están disponibles
+    def _blend(xg, goles):
+        try:
+            return 0.7 * float(xg) + 0.3 * float(goles)
+        except (TypeError, ValueError):
+            return float(xg)
+
+    xGF_local_adj = _blend(p.get("xGF_local_prom"), p.get("gf_local_10"))
+    xGA_local_adj = _blend(p.get("xGA_local_prom"), p.get("ga_local_10"))
+    xGF_visit_adj = _blend(p.get("xGF_visit_prom"), p.get("gf_visit_10"))
+    xGA_visit_adj = _blend(p.get("xGA_visit_prom"), p.get("ga_visit_10"))
+
     # Ajuste con choques lognormales
-    xGF_loc_draw = float(p["xGF_local_prom"]) * shock_lognormal(n, sigma)
-    xGA_vis_draw = float(p["xGA_visit_prom"]) * shock_lognormal(n, sigma)
-    xGF_vis_draw = float(p["xGF_visit_prom"]) * shock_lognormal(n, sigma)
-    xGA_loc_draw = float(p["xGA_local_prom"]) * shock_lognormal(n, sigma)
+    xGF_loc_draw = xGF_local_adj * shock_lognormal(n, sigma)
+    xGA_vis_draw = xGA_visit_adj * shock_lognormal(n, sigma)
+    xGF_vis_draw = xGF_visit_adj * shock_lognormal(n, sigma)
+    xGA_loc_draw = xGA_local_adj * shock_lognormal(n, sigma)
 
     lam_loc = np.clip(HFA * (xGF_loc_draw * xGA_vis_draw) / xG_liga, 1e-6, None)
     lam_vis = np.clip((1.0/HFA) * (xGF_vis_draw * xGA_loc_draw) / xG_liga, 1e-6, None)
@@ -180,6 +197,20 @@ def run_simulacion_completa(p=None, mostrar_graficos=True, exportar_excel=True):
     p = p or params
     df = sim_partido_xg(p)
     resumen = resumen_estadistico(df)
+    # Añadir al resumen los parámetros ajustados para transparencia
+    def _blend(xg, goles):
+        try:
+            return 0.7 * float(xg) + 0.3 * float(goles)
+        except (TypeError, ValueError):
+            return float(xg)
+    xGF_local_adj = _blend(p.get("xGF_local_prom"), p.get("gf_local_10"))
+    xGA_local_adj = _blend(p.get("xGA_local_prom"), p.get("ga_local_10"))
+    xGF_visit_adj = _blend(p.get("xGF_visit_prom"), p.get("gf_visit_10"))
+    xGA_visit_adj = _blend(p.get("xGA_visit_prom"), p.get("ga_visit_10"))
+    resumen["xGF local (ajust)"] = xGF_local_adj
+    resumen["xGA local (ajust)"] = xGA_local_adj
+    resumen["xGF visit (ajust)"] = xGF_visit_adj
+    resumen["xGA visit (ajust)"] = xGA_visit_adj
     score_counts = df.groupby(["g_loc", "g_vis"]).size().sort_values(ascending=False)
     top_scores = (score_counts.head(10) / len(df)).rename("Prob").reset_index()
 
