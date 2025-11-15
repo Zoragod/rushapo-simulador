@@ -59,17 +59,20 @@
     </fieldset>
     <fieldset class="card">
       <legend>Parámetros Globales</legend>
-      <div class="grid">
-        <label>xG Liga Equipo
-          <input type="number" step="0.01" name="xG_liga_equipo" value="{{ current['xG_liga_equipo'] if current else 0.98 }}" required />
+      <div class="grid form-grid">
+        <label><span class="lbl">Goles promedio liga (totales)</span>
+          <input type="number" step="0.01" name="goles_liga_prom" value="{{ current.get('goles_liga_prom', '') if current else '' }}" placeholder="ej: 2.62" />
         </label>
-        <label>HFA (home field advantage)
+        <label><span class="lbl">xG Liga Equipo (derivado = goles/2)</span>
+          <input type="number" step="0.01" name="xG_liga_equipo" value="{{ current['xG_liga_equipo'] if current else 0.98 }}" readonly />
+        </label>
+        <label><span class="lbl">HFA (home field advantage)</span>
           <input type="number" step="0.01" name="HFA" value="{{ current['HFA'] if current else 1.09 }}" required />
         </label>
-        <label>Sigma (volatilidad)
+        <label><span class="lbl">Sigma (volatilidad)</span>
           <input type="number" step="0.01" name="sigma" value="{{ current['sigma'] if current else 0.3 }}" required />
         </label>
-        <label>Simulaciones
+        <label><span class="lbl">Simulaciones</span>
           <input type="number" name="n_sims" value="{{ current['n_sims'] if current else 5000 }}" required />
         </label>
       </div>

@@ -52,12 +52,18 @@ def simular():
             "ga_local_10": _to_float(form.get("ga_local_10"), current.get("ga_local_10") or current["xGA_local_prom"]),
             "gf_visit_10": _to_float(form.get("gf_visit_10"), current.get("gf_visit_10") or current["xGF_visit_prom"]),
             "ga_visit_10": _to_float(form.get("ga_visit_10"), current.get("ga_visit_10") or current["xGA_visit_prom"]),
+            # Promedio de goles totales de la liga (si se da, derivamos xG liga = goles/2)
+            "goles_liga_prom": _to_float(form.get("goles_liga_prom"), current.get("goles_liga_prom") or 2*current["xG_liga_equipo"]),
             "xG_liga_equipo": _to_float(form.get("xG_liga_equipo"), current["xG_liga_equipo"]),
             "HFA": _to_float(form.get("HFA"), current["HFA"]),
             "sigma": _to_float(form.get("sigma"), current["sigma"]),
             "n_sims": _to_int(form.get("n_sims"), current["n_sims"]),
             "seed": current.get("seed", 42),
         }
+
+        # Recalcular xG liga si se proporcionó goles_liga_prom válido
+        if p.get("goles_liga_prom") and p["goles_liga_prom"] > 0:
+            p["xG_liga_equipo"] = p["goles_liga_prom"] / 2.0
         result = run_simulacion_completa(p, mostrar_graficos=False, exportar_excel=False)
         resumen = result["resumen"].to_dict()
         top_scores = result["top_scores"].to_dict(orient="records")

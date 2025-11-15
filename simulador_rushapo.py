@@ -34,6 +34,8 @@ params = {
     "ga_local_10": None,
     "gf_visit_10": None,
     "ga_visit_10": None,
+    # Promedio de goles totales por partido de la liga (para derivar xG_liga_equipo = goles_liga_prom/2)
+    "goles_liga_prom": None,
     "xG_liga_equipo": 0.98,
     "HFA": 1.09,
     "sigma": 0.3,
