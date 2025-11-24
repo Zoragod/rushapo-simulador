@@ -161,6 +161,46 @@
       </tbody>
     </table>
     {% endif %}
+
+    {% if sugerencias and (sugerencias.singles or sugerencias.combinadas) %}
+    <h3 style="color:var(--gold)">Sugerencias (EV>0 & Prob≥30%)</h3>
+    {% if sugerencias.singles %}
+    <h4 style="color:var(--gold-weak)">Singles</h4>
+    <table class="table">
+      <thead><tr><th>Mercado</th><th>Prob</th><th>Cuota book</th><th>EV</th><th>Stake (Kelly25%)</th></tr></thead>
+      <tbody>
+        {% for s in sugerencias.singles %}
+          <tr>
+            <td>{{ s['Mercado'] }}</td>
+            <td>{{ '{:.2%}'.format(s['Prob (sim)']) }}</td>
+            <td>{{ s['Cuota book'] if s['Cuota book'] else '-' }}</td>
+            <td>{{ '{:.2f}'.format(s['EV']) if s['EV'] is not none else '-' }}</td>
+            <td>{{ '{:.2%}'.format(s['Stake sugerido']) if s['Stake sugerido'] else '-' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if sugerencias.combinadas %}
+    <h4 style="color:var(--gold-weak)">Combinadas</h4>
+    <table class="table">
+      <thead><tr><th>Mercados</th><th>Prob</th><th>Cuota book</th><th>EV</th><th>Stake (Kelly25%)</th></tr></thead>
+      <tbody>
+        {% for c in sugerencias.combinadas %}
+          <tr>
+            <td>{{ c['Mercados'] }}</td>
+            <td>{{ '{:.2%}'.format(c['Prob']) }}</td>
+            <td>{{ '{:.2f}'.format(c['Cuota book']) if c['Cuota book'] else '-' }}</td>
+            <td>{{ '{:.2f}'.format(c['EV']) if c['EV'] is not none else '-' }}</td>
+            <td>{{ '{:.2%}'.format(c['Stake sugerido']) if c['Stake sugerido'] else '-' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <p style="font-size:.65rem; color:var(--muted)">Stake sugerido = Kelly fraccional (25%). Fórmula base: (p*o - 1)/(o - 1). Usa banca 1 unidad como referencia.</p>
+    {% endif %}
     </article>
   {% endif %}
   <footer>

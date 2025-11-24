@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+import itertools
 from simulador_rushapo import run_simulacion_completa, params as default_params
 
 app = Flask(__name__)
@@ -90,9 +91,79 @@ def simular():
             }
             rows.append(row)
         cuotas_view = rows
+
+        # --- Sugerencias de apuestas ---
+        # Criterios:
+        # 1. Singles con EV>0 y prob >= 0.30 (por defecto)
+        # 2. Combinadas (2 y 3 selecciones) generadas a partir de los singles elegibles
+        # 3. Stake sugerido usando Kelly fraccional (25% Kelly); si EV<=0 o sin cuota -> no stake
+
+        singles_elegibles = [r for r in rows if r["EV"] is not None and r["EV"] > 0 and r["Prob (sim)"] >= 0.30]
+        # Ordenar por EV descendente
+        singles_elegibles.sort(key=lambda x: x["EV"], reverse=True)
+
+        def kelly_fraction(p, o):
+            # Kelly = (p*o - 1)/(o - 1); usamos 25% Kelly => *0.25
+            try:
+                if p <= 0 or o <= 1:
+                    return 0.0
+                k = (p * o - 1.0) / (o - 1.0)
+                k = max(0.0, k)
+                return round(k * 0.25, 4)
+            except Exception:
+                return 0.0
+
+        for r in singles_elegibles:
+            if r["Cuota book"]:
+                r["Stake sugerido"] = kelly_fraction(r["Prob (sim)"], r["Cuota book"])
+            else:
+                r["Stake sugerido"] = None
+
+        # Limitar número mostrado de singles (p.ej. top 8)
+        singles_view = singles_elegibles[:8]
+
+        # Combinadas: usar primeras 5 singles para evitar explosión
+        base_for_parlays = singles_elegibles[:5]
+        combinadas = []
+        for r in range(2, 4):  # tamaños 2 y 3
+            for combo in itertools.combinations(base_for_parlays, r):
+                mercados = [c["Mercado"] for c in combo]
+                probs = [c["Prob (sim)"] for c in combo]
+                cuotas = [c["Cuota book"] for c in combo if c["Cuota book"]]
+                prob_comb = 1.0
+                for p_leg in probs:
+                    prob_comb *= p_leg
+                cuota_justa_comb = (1.0 / prob_comb) if prob_comb > 0 else None
+                cuota_book_comb = None
+                if len(cuotas) == r:  # todas tienen cuota
+                    cuota_book_comb = 1.0
+                    for o in cuotas:
+                        cuota_book_comb *= o
+                ev_comb = (prob_comb * cuota_book_comb - 1.0) if cuota_book_comb else None
+                stake_comb = kelly_fraction(prob_comb, cuota_book_comb) if cuota_book_comb and ev_comb and ev_comb > 0 else None
+                combinadas.append({
+                    "Mercados": " + ".join(mercados),
+                    "N": r,
+                    "Prob": prob_comb,
+                    "Cuota justa": cuota_justa_comb,
+                    "Cuota book": cuota_book_comb,
+                    "EV": ev_comb,
+                    "Stake sugerido": stake_comb,
+                })
+
+        # Filtrar combinadas con EV positivo
+        combinadas = [c for c in combinadas if c["EV"] is not None and c["EV"] > 0]
+        combinadas.sort(key=lambda x: x["EV"], reverse=True)
+        combinadas_view = combinadas[:6]
+
+        sugerencias = {
+            "singles": singles_view,
+            "combinadas": combinadas_view,
+        }
         current = p
     else:
         cuotas_view = []
+        sugerencias = {"singles": [], "combinadas": []}
 
     return render_template(
         "index.html",
@@ -101,6 +172,7 @@ def simular():
         current=current,
         odds_current=odds_current,
         cuotas=cuotas_view,
+        sugerencias=sugerencias,
     )
 
 
